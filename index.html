@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light only">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Varanasi Footpath Priorities</title>
+<meta name="description" content="Where Varanasi has room for footpaths, which stretches to build first, and when each can be acted on.">
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<style>
+@font-face { font-family: "Roboto"; font-weight: 400; font-display: swap; src: url("vendor/fonts/roboto-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Roboto"; font-weight: 500; font-display: swap; src: url("vendor/fonts/roboto-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Roboto"; font-weight: 700; font-display: swap; src: url("vendor/fonts/roboto-latin-700-normal.woff2") format("woff2"); }
+:root {
+  color-scheme: light;
+  --page: #ffffff; --surface: #ffffff; --line: #e2e0da; --hover: #f4f3f0;
+  --text: #0b0b0b; --text-2: #52514e; --text-3: #7c7a74;
+  --p-high: #104281; --p-med: #2a78d6; --p-low: #86b6ef;
+  --h-3: #0d366b; --h-6: #256abf; --h-9: #5598e7; --h-12: #86b6ef;
+  --bar: #2a78d6; --existing: #3b3a37; --point: #eb6834; --boundary: #0b0b0b; --zone: #52514e;
+  --accent: #184f95;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--text);
+  font: 14px/1.45 "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { padding: 14px 16px 6px; }
+h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.sub { color: var(--text-2); margin-top: 2px; font-size: 13px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 8px 16px; }
+.filters label, .filters .lab { font-size: 12px; color: var(--text-2); }
+.grp { display: flex; align-items: center; gap: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--text-2); padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 4px 9px; font-size: 13px; cursor: pointer; user-select: none; }
+.chip input { margin: 0; accent-color: var(--accent); }
+.sw { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+select, input[type="search"] { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--surface); color: var(--text); }
+button.link { border: 0; background: none; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 6px 16px 10px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.kpi .v { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi .l { color: var(--text-2); font-size: 12px; }
+main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, 1fr); gap: 10px; padding: 0 16px 16px; }
+#mapwrap { position: relative; min-height: 640px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+#map { position: absolute; inset: 0; }
+.legend { position: absolute; left: 10px; bottom: 26px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--text-2); max-width: 230px; }
+.legend b { color: var(--text); font-weight: 500; display: block; margin-bottom: 4px; }
+.legend div, .legend label { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+.legend label { cursor: pointer; } .legend input { margin: 0; accent-color: var(--accent); }
+.legend .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--point); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.legend .dash { width: 16px; border-top: 2px dashed var(--zone); }
+.legend .solid { width: 16px; border-top: 2.5px solid var(--boundary); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; min-height: 640px; max-height: 78vh; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); }
+.tabs button { flex: 1; border: 0; background: none; padding: 10px 6px; font: inherit; font-size: 13px; color: var(--text-2); cursor: pointer; border-bottom: 2px solid transparent; }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+.tabbody { padding: 12px 14px; overflow: auto; flex: 1; }
+h2 { font-size: 14px; margin: 0 0 2px; font-weight: 700; }
+.note { color: var(--text-2); font-size: 12px; margin: 0 0 10px; }
+.chart { margin-bottom: 22px; }
+.row { display: grid; grid-template-columns: 118px 1fr 62px; align-items: center; gap: 8px; margin: 6px 0; }
+.row .name { font-size: 12px; color: var(--text-2); }
+.row .val { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.track { display: flex; gap: 2px; height: 14px; }
+.segm { height: 14px; min-width: 2px; cursor: default; }
+.segm:last-child { border-radius: 0 4px 4px 0; }
+.klegend { display: flex; gap: 12px; font-size: 12px; color: var(--text-2); margin: 2px 0 8px; }
+.klegend span { display: inline-flex; align-items: center; gap: 5px; }
+.box { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; color: var(--text-2); font-weight: 500; font-size: 12px; padding: 6px 6px; border-bottom: 1px solid var(--line); position: sticky; top: -12px; background: var(--surface); cursor: pointer; white-space: nowrap; }
+td { padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr { cursor: pointer; } tbody tr:hover { background: var(--hover); }
+.pill { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.14); display: none; z-index: 20; max-width: 260px; }
+.maplibregl-popup-content { background: var(--surface); color: var(--text); border-radius: 10px; padding: 12px 14px; font: 13px/1.4 "Roboto", system-ui, sans-serif; max-width: 300px; }
+.maplibregl-map, .maplibregl-ctrl { font-family: "Roboto", system-ui, sans-serif; }
+.maplibregl-popup-close-button { color: var(--text-2); font-size: 18px; }
+.pop h3 { margin: 0 0 2px; font-size: 14px; }
+.pop .meta { color: var(--text-2); font-size: 12px; margin-bottom: 8px; }
+.pop dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0 0 8px; font-size: 12.5px; }
+.pop dt { color: var(--text-2); } .pop dd { margin: 0; }
+.crit { display: grid; grid-template-columns: 104px 1fr 30px; gap: 6px; align-items: center; font-size: 11.5px; color: var(--text-2); margin: 2px 0; }
+.crit i { display: block; height: 6px; border-radius: 0 3px 3px 0; background: var(--bar); }
+.crit em { font-style: normal; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+.warn { border: 1px solid var(--line); border-left: 3px solid var(--point); border-radius: 6px; padding: 8px 10px; font-size: 12.5px; color: var(--text-2); margin-bottom: 14px; }
+footer { padding: 0 16px 18px; color: var(--text-3); font-size: 12px; }
+@media (max-width: 980px) {
+  main { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); }
+  #mapwrap { min-height: 460px; } .panel { max-height: none; min-height: 0; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Varanasi footpath priorities</h1>
+  <div class="sub" id="sub">Loading…</div>
+</header>
+
+<div class="filters" id="filters">
+  <div class="grp"><span class="lab">Colour by</span>
+    <div class="seg" role="group" aria-label="Colour by">
+      <button data-mode="priority" aria-pressed="true">Priority</button>
+      <button data-mode="horizon" aria-pressed="false">When</button>
+    </div>
+  </div>
+  <div class="grp" id="f-priority"><span class="lab">Priority</span></div>
+  <div class="grp" id="f-horizon"><span class="lab">Act within</span></div>
+  <div class="grp"><label for="f-zone">Zone</label><select id="f-zone"><option value="">All</option></select></div>
+  <div class="grp"><label for="f-agency">Agency</label><select id="f-agency"><option value="">All</option></select></div>
+  <div class="grp"><input type="search" id="f-q" placeholder="Search road name" aria-label="Search road name"></div>
+  <button class="link" id="reset">Reset</button>
+</div>
+
+<section class="kpis" id="kpis"></section>
+
+<main>
+  <div id="mapwrap">
+    <div id="map"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="summary" aria-selected="true">Summary</button>
+      <button role="tab" data-tab="list" aria-selected="false">Stretches</button>
+      <button role="tab" data-tab="method" aria-selected="false">Method &amp; data</button>
+    </div>
+    <div class="tabbody" id="tab-summary"></div>
+    <div class="tabbody" id="tab-list" hidden></div>
+    <div class="tabbody" id="tab-method" hidden></div>
+  </div>
+</main>
+<footer id="foot"></footer>
+<div class="tip" id="tip"></div>
+
+<script src="vendor/maplibre-gl.js"></script>
+<script>
+(async function () {
+const $ = (s, r = document) => r.querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (x, d = 1) => (x == null || isNaN(x)) ? '–' : Number(x).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const PRI = ['High', 'Medium', 'Low'];
+const HOR = [3, 6, 9, 12];
+const priCol = { High: css('--p-high'), Medium: css('--p-med'), Low: css('--p-low') };
+const horCol = { 3: css('--h-3'), 6: css('--h-6'), 9: css('--h-9'), 12: css('--h-12') };
+const CRIT = { hierarchy: 'Road hierarchy', attractors: 'Nearby places', choke: 'Congestion point', population: 'Population density',
+  width: 'Footpath width', constructability: 'Constructability', continuity: 'Joins footpath', flood: 'Flood hazard' };
+
+let patches, existing, zones, city, points, S;
+try {
+  [patches, existing, zones, city, points, S] = await Promise.all(
+    ['patches.geojson', 'existing_footpath.geojson', 'zones.geojson', 'city.geojson', 'congestion_points.geojson', 'summary.json']
+      .map(f => fetch('data/' + f).then(r => { if (!r.ok) throw new Error(f); return r.json(); })));
+} catch (e) {
+  $('#sub').textContent = 'Could not load data/' + e.message + '. Run step 9 of the pipeline (09_export_web.R) and serve this folder over http.';
+  return;
+}
+const F = patches.features.map(f => f.properties);
+F.forEach(p => { p.act_within_months = Number(p.act_within_months); });
+
+const state = { mode: 'priority', pri: new Set(PRI), hor: new Set(HOR), zone: '', agency: '', q: '', sort: 'rank' };
+
+// ---------- header ----------
+const m = S.meta;
+$('#sub').textContent = `${fmt(S.opportunity_km)} km of ${fmt(S.network_km, 0)} km has room for a footpath. ` +
+  `${F.length} stretches of 100 m or more are ranked and phased from ${m.plan_start}.`;
+$('#foot').textContent = `Generated ${String(m.generated).slice(0, 10)} · verify widths on site before design`;
+
+// ---------- filters ----------
+function chips(host, items, set, colFn, lab) {
+  items.forEach(v => {
+    const l = document.createElement('label'); l.className = 'chip';
+    l.innerHTML = `<input type="checkbox" checked><span class="sw" style="background:${colFn(v)}"></span>${lab(v)}`;
+    l.firstChild.addEventListener('change', e => { e.target.checked ? set.add(v) : set.delete(v); update(); });
+    host.appendChild(l);
+  });
+}
+chips($('#f-priority'), PRI, state.pri, v => priCol[v], v => v);
+chips($('#f-horizon'), HOR, state.hor, v => horCol[v], v => v + ' mo');
+const uniq = k => [...new Set(F.map(p => p[k]).filter(Boolean))].sort();
+uniq('zone_name').forEach(z => $('#f-zone').add(new Option(z, z)));
+uniq('agency').forEach(a => $('#f-agency').add(new Option(a === 'VNN' ? 'VNN (VMC)' : a, a)));
+$('#f-zone').onchange = e => { state.zone = e.target.value; update(); };
+$('#f-agency').onchange = e => { state.agency = e.target.value; update(); };
+$('#f-q').oninput = e => { state.q = e.target.value.trim().toLowerCase(); update(); };
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+  state.mode = b.dataset.mode;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  paint(); legend();
+});
+$('#reset').onclick = () => {
+  state.pri = new Set(PRI); state.hor = new Set(HOR); state.zone = state.agency = state.q = '';
+  document.querySelectorAll('#filters input[type=checkbox]').forEach(c => c.checked = true);
+  $('#f-zone').value = ''; $('#f-agency').value = ''; $('#f-q').value = '';
+  // chip handlers captured the old sets: rebuild
+  $('#f-priority').querySelectorAll('.chip').forEach(c => c.remove());
+  $('#f-horizon').querySelectorAll('.chip').forEach(c => c.remove());
+  chips($('#f-priority'), PRI, state.pri, v => priCol[v], v => v);
+  chips($('#f-horizon'), HOR, state.hor, v => horCol[v], v => v + ' mo');
+  update();
+};
+const pass = p => state.pri.has(p.priority) && state.hor.has(p.act_within_months) &&
+  (!state.zone || p.zone_name === state.zone) && (!state.agency || p.agency === state.agency) &&
+  (!state.q || String(p.road_name).toLowerCase().includes(state.q));
+
+// ---------- tooltip ----------
+const tip = $('#tip');
+function hover(el, html) {
+  el.addEventListener('mousemove', e => { tip.innerHTML = html; tip.style.display = 'block';
+    tip.style.left = Math.min(e.clientX + 12, innerWidth - 270) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; });
+  el.addEventListener('mouseleave', () => tip.style.display = 'none');
+}
+
+// ---------- map ----------
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+const map = new maplibregl.Map({
+  container: 'map', maxZoom: 17.5,
+  style: { version: 8,
+    sources: {
+      base:   { type: 'raster', tileSize: 256, maxzoom: 16, tiles: [ESRI + 'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
+                attribution: '© Esri · © OpenStreetMap' },
+      labels: { type: 'raster', tileSize: 256, maxzoom: 16, tiles: [ESRI + 'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}'] }
+    },
+    layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#f2f2f0' } },
+             { id: 'base', type: 'raster', source: 'base' },
+             { id: 'base-labels', type: 'raster', source: 'labels', paint: { 'raster-opacity': 0.85 } }] },
+  bounds: [[82.915, 25.237], [83.063, 25.403]], fitBoundsOptions: { padding: 20 }, attributionControl: { compact: true }
+});
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+// 'style.load' (not 'load'): the dashboard must not wait on basemap tiles
+await new Promise(r => map.isStyleLoaded() ? r() : map.once('style.load', r));
+
+map.addSource('patches', { type: 'geojson', data: patches, promoteId: 'patch_id' });
+map.addSource('existing', { type: 'geojson', data: existing });
+map.addSource('zones', { type: 'geojson', data: zones });
+map.addSource('city', { type: 'geojson', data: city });
+map.addSource('points', { type: 'geojson', data: points });
+
+map.addLayer({ id: 'zones', type: 'line', source: 'zones', paint: { 'line-color': css('--zone'), 'line-width': 1.2, 'line-dasharray': [3, 2], 'line-opacity': 0.8 } });
+map.addLayer({ id: 'city', type: 'line', source: 'city', paint: { 'line-color': css('--boundary'), 'line-width': 2.2 } });
+map.addLayer({ id: 'existing', type: 'line', source: 'existing', paint: { 'line-color': css('--existing'), 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1, 16, 3] } });
+map.addLayer({ id: 'patches-halo', type: 'line', source: 'patches', layout: { 'line-cap': 'round' },
+  paint: { 'line-color': css('--surface'), 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 3.5, 16, 9], 'line-opacity': 0.9 } });
+map.addLayer({ id: 'patches', type: 'line', source: 'patches', layout: { 'line-cap': 'round' },
+  paint: { 'line-color': '#888', 'line-width': ['interpolate', ['linear'], ['zoom'], 11,
+      ['case', ['boolean', ['feature-state', 'hover'], false], 4, 2], 16, ['case', ['boolean', ['feature-state', 'hover'], false], 9, 6]] } });
+map.addLayer({ id: 'points', type: 'circle', source: 'points',
+  paint: { 'circle-radius': 5, 'circle-color': css('--point'), 'circle-stroke-color': css('--surface'), 'circle-stroke-width': 2 } });
+// zone labels as HTML markers (the style has no glyph server)
+const zoneLabels = [];
+zones.features.forEach(z => {
+  const q = z.properties; if (q.label_lon == null) return;
+  const el = document.createElement('div');
+  el.textContent = String(q.zone_name).toUpperCase();
+  el.style.cssText = `font:500 10.5px Roboto,system-ui,sans-serif;letter-spacing:.08em;color:${css('--text-2')};text-shadow:0 0 3px ${css('--surface')},0 0 3px ${css('--surface')};pointer-events:none`;
+  new maplibregl.Marker({ element: el }).setLngLat([q.label_lon, q.label_lat]).addTo(map);
+  zoneLabels.push(el);
+});
+
+function paint() {
+  const expr = state.mode === 'priority'
+    ? ['match', ['get', 'priority'], 'High', priCol.High, 'Medium', priCol.Medium, priCol.Low]
+    : ['match', ['get', 'act_within_months'], 3, horCol[3], 6, horCol[6], 9, horCol[9], horCol[12]];
+  map.setPaintProperty('patches', 'line-color', expr);
+  // strongest class drawn last
+  map.setLayoutProperty('patches', 'line-sort-key', state.mode === 'priority'
+    ? ['match', ['get', 'priority'], 'High', 3, 'Medium', 2, 1] : ['-', 12, ['get', 'act_within_months']]);
+}
+// overlay layers the viewer can switch on and off from the legend
+const OVER = [
+  { key: 'existing', layers: ['existing'], sw: `<span class="sw" style="background:${css('--existing')};width:16px"></span>`, label: 'Existing footpath' },
+  { key: 'points',   layers: ['points'],   sw: '<span class="dot"></span>', label: `Congestion point (${S.n_congestion})` },
+  { key: 'city',     layers: ['city'],     sw: '<span class="solid"></span>', label: 'City boundary' },
+  { key: 'zones',    layers: ['zones'],    sw: '<span class="dash"></span>', label: 'Zone boundary (derived)' }
+];
+const visible = { existing: true, points: true, city: true, zones: true };
+function setVisible(key, on) {
+  visible[key] = on;
+  OVER.find(o => o.key === key).layers.forEach(l => map.setLayoutProperty(l, 'visibility', on ? 'visible' : 'none'));
+  if (key === 'zones') zoneLabels.forEach(el => el.style.display = on ? '' : 'none');
+}
+function legend() {
+  const items = state.mode === 'priority'
+    ? PRI.map(p => [priCol[p], p + ' priority'])
+    : HOR.map(h => [horCol[h], 'Act within ' + h + ' months']);
+  $('#legend').innerHTML = `<b>${state.mode === 'priority' ? 'Priority (AHP score)' : 'When it can be acted on'}</b>` +
+    items.map(([c, l]) => `<div><span class="sw" style="background:${c};width:16px"></span>${l}</div>`).join('') +
+    `<b style="margin-top:8px">Layers</b>` +
+    OVER.map(o => `<label><input type="checkbox" data-layer="${o.key}" ${visible[o.key] ? 'checked' : ''}>${o.sw}${o.label}</label>`).join('');
+  $('#legend').querySelectorAll('input[data-layer]').forEach(c =>
+    c.addEventListener('change', e => setVisible(e.target.dataset.layer, e.target.checked)));
+}
+
+let hovered = null;
+map.on('mousemove', 'patches', e => {
+  map.getCanvas().style.cursor = 'pointer';
+  const id = e.features[0].id;
+  if (hovered !== null && hovered !== id) map.setFeatureState({ source: 'patches', id: hovered }, { hover: false });
+  hovered = id; map.setFeatureState({ source: 'patches', id }, { hover: true });
+});
+map.on('mouseleave', 'patches', () => {
+  map.getCanvas().style.cursor = '';
+  if (hovered !== null) map.setFeatureState({ source: 'patches', id: hovered }, { hover: false }); hovered = null;
+});
+map.on('click', 'patches', e => popup(e.features[0].properties, e.lngLat));
+map.on('click', 'points', e => new maplibregl.Popup({ offset: 8 }).setLngLat(e.lngLat)
+  .setHTML(`<div class="pop"><h3>${esc(e.features[0].properties.name_en)}</h3><div class="meta">${esc(e.features[0].properties.source || 'Congestion point')}</div></div>`).addTo(map));
+
+let pop;
+function popup(p, lngLat) {
+  if (typeof p.act_within_months === 'string') p.act_within_months = Number(p.act_within_months);
+  const crit = Object.keys(CRIT).filter(k => p['c_' + k] != null && p['c_' + k] !== 'null').map(k => {
+    const v = Number(p['c_' + k]);
+    return `<div class="crit"><span>${CRIT[k]}</span><span><i style="width:${Math.max(2, v * 100)}%"></i></span><em>${v.toFixed(2)}</em></div>`;
+  }).join('');
+  const side = p.preferred_side && p.preferred_side !== 'null' ? ` (clearer side: ${p.preferred_side})` : '';
+  const html = `<div class="pop"><h3>${esc(p.road_name)}</h3>
+    <div class="meta">${esc(p.road_category)} · ${esc(p.zone_name)} zone · ward ${esc(p.ward_no)} · ${esc(p.agency === 'VNN' ? 'VMC' : p.agency)}</div>
+    <dl><dt>Priority</dt><dd><b>${esc(p.priority)}</b>, score ${fmt(p.ahp_score)} (rank ${p.rank})</dd>
+    <dt>Act within</dt><dd><b>${p.act_within_months} months</b>, by ${esc(p.target_date)}</dd>
+    <dt>Why then</dt><dd>${esc(p.phase_reason)}</dd>
+    <dt>Length</dt><dd>${fmt(p.length_m, 0)} m, class ${esc(p.dominant_class)}${side}</dd>
+    <dt>Footpath</dt><dd>${fmt(p.fp_width_side_min_m)} m min. width, ${fmt(p.fp_area_m2, 0)} m²</dd>
+    <dt>Nearest point</dt><dd>${esc(p.choke_nearest)} (${fmt(p.choke_dist_min_m, 0)} m)</dd></dl>
+    <div class="note" style="margin:0 0 4px">Criteria (0–1)</div>${crit}</div>`;
+  if (pop) pop.remove();
+  pop = new maplibregl.Popup({ maxWidth: '320px' }).setLngLat(lngLat).setHTML(html).addTo(map);
+}
+function zoomTo(id) {
+  const f = patches.features.find(x => x.properties.patch_id === id); if (!f) return;
+  const cs = f.geometry.type === 'LineString' ? f.geometry.coordinates : f.geometry.coordinates.flat();
+  const b = cs.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(cs[0], cs[0]));
+  map.fitBounds(b, { padding: 140, maxZoom: 15.5, duration: 600 });
+  popup(f.properties, cs[Math.floor(cs.length / 2)]);
+}
+
+// ---------- panels ----------
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['summary', 'list', 'method'].forEach(t => $('#tab-' + t).hidden = t !== b.dataset.tab);
+});
+const km = a => a.reduce((s, p) => s + p.length_m, 0) / 1000;
+
+function kpis(V) {
+  const hi = V.filter(p => p.priority === 'High');
+  const items = [
+    [V.length.toLocaleString('en-IN'), 'stretches shown'],
+    [fmt(km(V)) + ' km', 'total length'],
+    [fmt(km(hi)) + ' km', 'high priority'],
+    [fmt(km(V.filter(p => p.act_within_months <= 3))) + ' km', 'actionable within 3 months'],
+    [fmt(V.reduce((s, p) => s + (p.fp_area_m2 || 0), 0) / 1e4) + ' ha', 'footpath area']
+  ];
+  $('#kpis').innerHTML = items.map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+}
+
+function stacked(host, rows, max) {
+  rows.forEach(r => {
+    const d = document.createElement('div'); d.className = 'row';
+    d.innerHTML = `<span class="name">${r.name}</span><span class="track"></span><span class="val">${fmt(r.total)} km</span>`;
+    const tr = d.children[1];
+    r.parts.forEach(pt => {
+      if (pt.v <= 0) return;
+      const s = document.createElement('span'); s.className = 'segm';
+      s.style.cssText = `width:${pt.v / max * 100}%;background:${pt.c}`;
+      hover(s, `<b>${r.name}</b><br>${pt.l}: ${fmt(pt.v)} km`);
+      tr.appendChild(s);
+    });
+    host.appendChild(d);
+  });
+}
+function summary(V) {
+  const h = $('#tab-summary'); h.innerHTML = '';
+  const c1 = document.createElement('div'); c1.className = 'chart';
+  const hiV = V.filter(p => p.priority === 'High'), hiLate = km(hiV.filter(p => p.act_within_months >= 9)), hiAll = km(hiV);
+  const head = hiAll > 0 ? `${Math.round(100 * hiLate / hiAll)}% of high-priority length needs 9–12 months` : 'Length by horizon';
+  c1.innerHTML = `<h2>${head}</h2>
+    <p class="note">Kilometres of ranked stretches by the earliest horizon they can be acted on.</p>
+    <div class="klegend">${PRI.map(p => `<span><span class="box" style="background:${priCol[p]}"></span>${p}</span>`).join('')}</div>`;
+  const rows = HOR.map(hz => {
+    const a = V.filter(p => p.act_within_months === hz);
+    return { name: `Within ${hz} months`, total: km(a), parts: PRI.map(p => ({ l: p + ' priority', c: priCol[p], v: km(a.filter(x => x.priority === p)) })) };
+  });
+  stacked(c1, rows, Math.max(1, ...rows.map(r => r.total)));
+  h.appendChild(c1);
+
+  const c2 = document.createElement('div'); c2.className = 'chart';
+  c2.innerHTML = `<h2>High-priority length by zone</h2><p class="note">Kilometres of high-priority stretches in each zone, split by horizon.</p>
+    <div class="klegend">${HOR.map(x => `<span><span class="box" style="background:${horCol[x]}"></span>${x} mo</span>`).join('')}</div>`;
+  const zs = uniq('zone_name').map(z => {
+    const a = V.filter(p => p.zone_name === z && p.priority === 'High');
+    return { name: z, total: km(a), parts: HOR.map(x => ({ l: `Within ${x} months`, c: horCol[x], v: km(a.filter(p => p.act_within_months === x)) })) };
+  }).filter(r => r.total > 0).sort((a, b) => b.total - a.total);
+  if (zs.length) stacked(c2, zs, Math.max(...zs.map(r => r.total))); else c2.insertAdjacentHTML('beforeend', '<p class="note">No high-priority stretches in the current filter.</p>');
+  h.appendChild(c2);
+}
+
+function list(V) {
+  const h = $('#tab-list');
+  const key = state.sort;
+  const rows = [...V].sort((a, b) => key === 'length_m' ? b.length_m - a.length_m : a[key] - b[key]);
+  const shown = rows.slice(0, 250);
+  h.innerHTML = `<p class="note">${rows.length} stretches${rows.length > 250 ? ', first 250 shown' : ''}. Click a row to zoom. Click a column heading to sort.</p>
+    <table><thead><tr><th data-s="rank" class="n">Rank</th><th data-s="temporal_rank" class="n">Order to act</th><th>Road</th><th>Priority</th><th data-s="temporal_rank">When</th><th data-s="length_m" class="n">m</th></tr></thead>
+    <tbody>${shown.map(p => `<tr data-id="${p.patch_id}"><td class="n">${p.rank}</td><td class="n">${p.temporal_rank}</td>
+      <td>${esc(p.road_name)}<br><span style="color:var(--text-3)">${esc(p.zone_name)} · ${esc(p.agency === 'VNN' ? 'VMC' : p.agency)}</span></td>
+      <td><span class="pill"><span class="box" style="background:${priCol[p.priority]}"></span>${p.priority}</span></td>
+      <td><span class="pill"><span class="box" style="background:${horCol[p.act_within_months]}"></span>${p.act_within_months} mo</span></td>
+      <td class="n">${fmt(p.length_m, 0)}</td></tr>`).join('')}</tbody></table>`;
+  h.querySelectorAll('th[data-s]').forEach(t => t.onclick = () => { state.sort = t.dataset.s; list(V); });
+  h.querySelectorAll('tbody tr').forEach(r => r.onclick = () => zoomTo(Number(r.dataset.id)));
+}
+
+function method() {
+  const h = $('#tab-method');
+  const w = [...S.ahp].sort((a, b) => b.weight - a.weight), mx = w[0].weight;
+  const dropped = m.criteria_dropped ? `<div class="warn">Criterion without data in this run: ${esc(m.criteria_dropped.split(';').map(k => (CRIT[k] || k).toLowerCase()).join(', '))}. Weights were recomputed without it.</div>` : '';
+  h.innerHTML = `<div class="warn">The pairwise judgments behind these weights and the lead times below are analyst defaults. Confirm them with VMC before using the ranking for decisions.</div>${dropped}
+    <div class="chart"><h2>AHP criterion weights</h2><p class="note">Principal eigenvector of the pairwise matrix. Consistency ratio ${esc(m.CR)} (limit 0.10).</p><div id="wbars"></div></div>
+    <div class="chart"><h2>Lead times</h2><p class="note">A segment takes the longest that applies. A stretch is actionable when ${Math.round(m.patch_share * 100)}% of its length is.</p>
+    <table><tbody>
+      <tr><td>Space on both sides (class A1, A2)</td><td class="n">${m.lead_A} mo</td></tr>
+      <tr><td>One side only (class B)</td><td class="n">${m.lead_B} mo</td></tr>
+      <tr><td>Unpaved road</td><td class="n">${m.lead_unpaved} mo</td></tr>
+      <tr><td>State or institutional agency road</td><td class="n">${m.lead_state_agency} mo</td></tr>
+      <tr><td>Flood hazard ≥ ${m.flood_hazard_high}</td><td class="n">${m.lead_flood} mo</td></tr>
+      <tr><td>Carriageway reallocation (class C)</td><td class="n">${m.lead_C} mo</td></tr>
+      <tr><td>National agency road</td><td class="n">${m.lead_national_agency} mo</td></tr>
+      <tr><td>Buildings on ≥ ${Math.round(m.built_ov_high * 100)}% of the footpath strip</td><td class="n">${m.lead_built} mo</td></tr>
+    </tbody></table></div>
+    <div class="chart"><h2>Data currency</h2><p class="note">Age as of the run date. Relevance compares age with each dataset's shelf-life.</p>
+    <table><thead><tr><th>Dataset</th><th>Date</th><th class="n">Age (mo)</th><th>Relevance</th></tr></thead><tbody>
+    ${S.currency.map(c => `<tr title="${esc(c.caveat)}"><td>${esc(c.dataset)}<br><span style="color:var(--text-3)">${esc(c.used_for)}</span></td>
+      <td>${esc(c.data_date || 'not recorded')}</td><td class="n">${c.age_months == null ? '–' : fmt(c.age_months)}</td><td>${esc(c.relevance)}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  const wb = $('#wbars');
+  w.forEach(x => {
+    const d = document.createElement('div'); d.className = 'row'; d.style.gridTemplateColumns = '128px 1fr 44px';
+    d.innerHTML = `<span class="name">${CRIT[x.criterion] || x.criterion}</span><span class="track"><span class="segm" style="width:${x.weight / mx * 100}%;background:${css('--bar')};border-radius:0 4px 4px 0"></span></span><span class="val">${(x.weight * 100).toFixed(1)}%</span>`;
+    hover(d.querySelector('.segm'), `<b>${CRIT[x.criterion] || x.criterion}</b><br>weight ${(x.weight * 100).toFixed(1)}%`);
+    wb.appendChild(d);
+  });
+}
+
+function update() {
+  const V = F.filter(pass);
+  const ids = V.map(p => p.patch_id);
+  const flt = ['in', ['get', 'patch_id'], ['literal', ids]];
+  map.setFilter('patches', flt); map.setFilter('patches-halo', flt);
+  kpis(V); summary(V); list(V);
+}
+paint(); legend(); method(); update();
+window.__ready = true;
+})();
+</script>
+</body>
+</html>

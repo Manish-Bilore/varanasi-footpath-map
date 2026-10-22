@@ -1,0 +1,32 @@
+{
+"type": "FeatureCollection",
+"name": "congestion_points",
+"features": [
+{ "type": "Feature", "properties": { "id": "CP01", "name_en": "Sigra Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.989422, 25.310473 ] } },
+{ "type": "Feature", "properties": { "id": "CP02", "name_en": "Rathyatra Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.99167, 25.30697 ] } },
+{ "type": "Feature", "properties": { "id": "CP03", "name_en": "Gurubagh Tiraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.996759, 25.307388 ] } },
+{ "type": "Feature", "properties": { "id": "CP04", "name_en": "Nima Mai Tiraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.002166, 25.307413 ] } },
+{ "type": "Feature", "properties": { "id": "CP05", "name_en": "Ravidas Gate", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.003027, 25.282022 ] } },
+{ "type": "Feature", "properties": { "id": "CP06", "name_en": "BHU Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.002316, 25.277868 ] } },
+{ "type": "Feature", "properties": { "id": "CP07", "name_en": "Trauma Centre", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.005497, 25.277262 ] } },
+{ "type": "Feature", "properties": { "id": "CP08", "name_en": "Samne Ghat", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.013837, 25.272369 ] } },
+{ "type": "Feature", "properties": { "id": "CP09", "name_en": "Rajghat Pul", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.029684, 25.326891 ] } },
+{ "type": "Feature", "properties": { "id": "CP10", "name_en": "Maidagin to Kotwali Gate", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.012784, 25.318904 ] } },
+{ "type": "Feature", "properties": { "id": "CP11", "name_en": "Lohatia to Kabir Chaura", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.007731, 25.319832 ] } },
+{ "type": "Feature", "properties": { "id": "CP12", "name_en": "Chaukaghat Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.996465, 25.332669 ] } },
+{ "type": "Feature", "properties": { "id": "CP13", "name_en": "Andhrapul Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.992088, 25.330599 ] } },
+{ "type": "Feature", "properties": { "id": "CP14", "name_en": "Police Line Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.983818, 25.345646 ] } },
+{ "type": "Feature", "properties": { "id": "CP15", "name_en": "Kachahari Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.981276, 25.344678 ] } },
+{ "type": "Feature", "properties": { "id": "CP16", "name_en": "Ambedkar Chauraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.980661, 25.342352 ] } },
+{ "type": "Feature", "properties": { "id": "CP17", "name_en": "Bhojubir Tiraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.976888, 25.350715 ] } },
+{ "type": "Feature", "properties": { "id": "CP18", "name_en": "Gilat Bazar", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.965807, 25.353816 ] } },
+{ "type": "Feature", "properties": { "id": "CP19", "name_en": "Beniya Tiraha", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 83.003648, 25.314343 ] } },
+{ "type": "Feature", "properties": { "id": "CP20", "name_en": "Kakarmatta Pul BLW", "source": "Traffic Police letter, Jan 2026" }, "geometry": { "type": "Point", "coordinates": [ 82.969879, 25.289158 ] } },
+{ "type": "Feature", "properties": { "id": "CP21", "name_en": "Lahurabir", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 82.999938, 25.323686 ] } },
+{ "type": "Feature", "properties": { "id": "CP22", "name_en": "Godowlia", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 83.006908, 25.309328 ] } },
+{ "type": "Feature", "properties": { "id": "CP23", "name_en": "Chowk", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 83.01125, 25.313451 ] } },
+{ "type": "Feature", "properties": { "id": "CP24", "name_en": "Vishweshwarganj", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 83.016946, 25.319933 ] } },
+{ "type": "Feature", "properties": { "id": "CP25", "name_en": "Englishia Line", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 82.986971, 25.324642 ] } },
+{ "type": "Feature", "properties": { "id": "CP26", "name_en": "Lanka", "source": "Varanasi Master Plan 2031, p. 11" }, "geometry": { "type": "Point", "coordinates": [ 83.003059, 25.282192 ] } }
+]
+}
